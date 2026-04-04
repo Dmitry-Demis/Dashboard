@@ -347,7 +347,12 @@ function render(rows){
 
   const aAge=avg(rows.map(r=>+r['Возраст']).filter(x=>!isNaN(x)&&x>0&&x<100));
   const male=rows.filter(r=>r['Пол']==='Мужской').length;
-  const r1avg=avg(rows.map(r=>+r['R1_Удовлетворённость']).filter(x=>!isNaN(x)));
+
+  // Общее среднее по всем числовым рейтинговым блокам
+  const ratingKeys=['T1_Покрытие','T2_ХорошоПлохо','T3_Визуализации','I1_Разнообразие','I2_Компилятор','G1_ОпытМонетки','G2_Стрики','G3_Статистика','U1_Дизайн','U2_Анимации','U3_Профиль','R1_Удовлетворённость'];
+  const allRatingVals=rows.flatMap(r=>ratingKeys.map(k=>r[k]).filter(v=>v!==''&&v!==undefined));
+  const overallAvg=avg(allRatingVals);
+
   const r2avg=avg(rows.map(r=>+r['R2_Эффективность']).filter(x=>!isNaN(x)));
 
   let html='';
@@ -358,7 +363,7 @@ function render(rows){
       [n,'Ответов','#6366f1','📝'],
       [aAge?aAge.toFixed(0):'—','Ср. возраст','#8b5cf6','🎓'],
       [Math.round(male/n*100)+'%','Мужчин','#3b82f6','👤'],
-      [r1avg?r1avg.toFixed(1):'—','Удовл. сайтом','#10b981','⭐'],
+      [overallAvg?overallAvg.toFixed(1):'—','Общий рейтинг','#10b981','⭐'],
       [r2avg?r2avg.toFixed(1):'—','Эффективность','#f59e0b','🚀'],
     ].map(([v,l,c,ic])=>`<div class="stat-tile">
       <div style="font-size:1.1rem;margin-bottom:4px">${ic}</div>
