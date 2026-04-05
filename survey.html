@@ -143,7 +143,7 @@ function nid(){return 'c'+(++cid)}
 // ── CARD: RATING (lollipop) ───────────────────────────────────────────────────
 function ratingCard(title, values, low, high){
   const dist=ratingDist(values);
-  const entries=Object.entries(dist).sort((a,b)=>+a[0]-+b[0]);
+  const entries=Object.entries(dist).sort((a,b)=>+b[0]-+a[0]);
   if(!entries.length)return '';
   const total=entries.reduce((s,[,v])=>s+v,0);
   const maxV=Math.max(...entries.map(e=>e[1]),1);
@@ -347,26 +347,42 @@ function compareSummaryCard(rows){
 
 // ── CARD: FEEDBACK (R3/R4) ────────────────────────────────────────────────────
 function feedbackCard(rows){
-  const items=rows.map(r=>{
+  const items=rows.map((r,i)=>{
     const good=(r['R3_Понравилось']||'').trim();
     const improve=(r['R4_Улучшить']||'').trim();
     if(!good&&!improve)return null;
-    return {good,improve,len:(good+improve).length};
-  }).filter(Boolean);
+    return {good, improve, len:(good+improve).length, idx:i+1};
+  }).filter(Boolean).sort((a,b)=>a.len-b.len);
 
-  const cards=items.map(({good,improve})=>`
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;break-inside:avoid;margin-bottom:10px">
-      ${good?`<div style="border-left:3px solid #10b981;padding-left:10px;margin-bottom:${improve?'8px':'0'};font-size:.75rem;color:#d1fae5;line-height:1.6">${good.replace(/\n/g,'<br>')}</div>`:''}
+  // порог: короткие <150 символов → 4 колонки, средние <350 → 2, длинные → 1
+  const short=items.filter(x=>x.len<150);
+  const mid=items.filter(x=>x.len>=150&&x.len<400);
+  const long=items.filter(x=>x.len>=400);
+
+  const card=({good,improve,idx})=>`
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;margin-bottom:10px;break-inside:avoid">
+      <div style="font-size:.6rem;color:#475569;font-weight:700;margin-bottom:6px"># ${idx}</div>
+      ${good?`<div style="border-left:3px solid #10b981;padding-left:10px;${improve?'margin-bottom:8px':''}">
+        <div style="font-size:.6rem;color:#10b981;font-weight:700;margin-bottom:3px">❝ Понравилось</div>
+        <div style="font-size:.75rem;color:#d1fae5;line-height:1.6">${good.replace(/\n/g,'<br>')}</div>
+      </div>`:''}
       ${good&&improve?`<div style="height:1px;background:rgba(255,255,255,.06);margin:6px 0"></div>`:''}
-      ${improve?`<div style="border-left:3px solid #6366f1;padding-left:10px;font-size:.75rem;color:#c7d2fe;line-height:1.6">${improve.replace(/\n/g,'<br>')}</div>`:''}
-    </div>`).join('');
+      ${improve?`<div style="border-left:3px solid #6366f1;padding-left:10px">
+        <div style="font-size:.6rem;color:#818cf8;font-weight:700;margin-bottom:3px">❝ Улучшить</div>
+        <div style="font-size:.75rem;color:#c7d2fe;line-height:1.6">${improve.replace(/\n/g,'<br>')}</div>
+      </div>`:''}
+    </div>`;
+
+  const section=(cols,list)=>list.length?`<div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:10px;margin-bottom:10px">${list.map(card).join('')}</div>`:'';
 
   return `<div>
     <div style="display:flex;gap:16px;margin-bottom:12px;font-size:.65rem;font-weight:700">
-      <span style="color:#10b981">● Понравилось</span>
-      <span style="color:#6366f1">● Улучшить</span>
+      <span style="color:#10b981">❝ Понравилось</span>
+      <span style="color:#6366f1">❝ Улучшить</span>
     </div>
-    <div style="columns:320px;column-gap:10px">${cards}</div>
+    ${section(4,short)}
+    ${section(2,mid)}
+    ${section(1,long)}
   </div>`;
 }
 
