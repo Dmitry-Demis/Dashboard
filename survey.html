@@ -278,9 +278,10 @@ function compareCard(title, key, rows){
     if(parts.length===3){vuz.push(parts[0]);online.push(parts[1]);site.push(parts[2]);}
   });
   const aV=avg(vuz, true), aO=avg(online, true), aS=avg(site, true);
+  const formats=[['ВУЗ',aV,'#6366f1'],['Онлайн',aO,'#f59e0b'],['Сайт',aS,'#10b981']].sort((a,b)=>(b[1]||0)-(a[1]||0));
   const id=nid();
-  CQ.push({id,type:'donut',labels:['ВУЗ','Онлайн','Сайт'],data:[aV||0,aO||0,aS||0],colors:['#6366f1','#f59e0b','#10b981']});
-  const bars=[['ВУЗ',aV,'#6366f1'],['Онлайн',aO,'#f59e0b'],['Сайт',aS,'#10b981']].map(([lbl,val,c])=>{
+  CQ.push({id,type:'donut',labels:formats.map(f=>f[0]),data:formats.map(f=>f[1]||0),colors:formats.map(f=>f[2])});
+  const bars=formats.map(([lbl,val,c])=>{
     const w=val?Math.round(val/10*100):0;
     return `<div style="margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;margin-bottom:3px">
@@ -290,9 +291,7 @@ function compareCard(title, key, rows){
       <div class="mbar-track"><div class="mbar-fill" style="width:${w}%;background:linear-gradient(90deg,${c}66,${c})"></div></div>
     </div>`;
   }).join('');
-  const best=[aV||0,aO||0,aS||0].reduce((bi,v,i,a)=>v>a[bi]?i:bi,0);
-  const bestVal=[aV,aO,aS][best];
-  const bestColor=['#6366f1','#f59e0b','#10b981'][best];
+  const bestVal=formats[0][1], bestColor=formats[0][2];
   return `<div class="glass" style="padding:16px">
     <div class="q-title">${title}</div>
     <div style="display:flex;gap:12px;align-items:center">
@@ -318,9 +317,10 @@ function compareSummaryCard(rows){
     });
   });
   const aV=avg(vuzAll,true), aO=avg(onlineAll,true), aS=avg(siteAll,true);
+  const formats=[['ВУЗ',aV,'#6366f1'],['Онлайн',aO,'#f59e0b'],['Сайт',aS,'#10b981']].sort((a,b)=>(b[1]||0)-(a[1]||0));
   const id=nid();
-  CQ.push({id,type:'donut',labels:['ВУЗ','Онлайн','Сайт'],data:[aV||0,aO||0,aS||0],colors:['#6366f1','#f59e0b','#10b981']});
-  const bars=[['ВУЗ',aV,'#6366f1'],['Онлайн',aO,'#f59e0b'],['Сайт',aS,'#10b981']].map(([lbl,val,c])=>{
+  CQ.push({id,type:'donut',labels:formats.map(f=>f[0]),data:formats.map(f=>f[1]||0),colors:formats.map(f=>f[2])});
+  const bars=formats.map(([lbl,val,c])=>{
     const w=val?Math.round(val/10*100):0;
     return `<div style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
