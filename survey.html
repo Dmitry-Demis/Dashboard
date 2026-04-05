@@ -347,29 +347,34 @@ function compareSummaryCard(rows){
 
 // ── CARD: FEEDBACK (R3/R4) ────────────────────────────────────────────────────
 function feedbackCard(rows){
-  const items=rows.map((r,i)=>{
+  const items=rows.map(r=>{
     const good=(r['R3_Понравилось']||'').trim();
     const improve=(r['R4_Улучшить']||'').trim();
     if(!good&&!improve)return null;
-    return {good, improve, len:(good+improve).length, idx:i+1};
-  }).filter(Boolean).sort((a,b)=>a.len-b.len);
+    return {good, improve, len:(good+improve).length};
+  }).filter(Boolean).sort((a,b)=>a.len-b.len).map((x,i)=>({...x,idx:i+1}));
 
-  // порог: короткие <150 символов → 4 колонки, средние <350 → 2, длинные → 1
   const short=items.filter(x=>x.len<150);
   const mid=items.filter(x=>x.len>=150&&x.len<400);
   const long=items.filter(x=>x.len>=400);
 
   const card=({good,improve,idx})=>`
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;margin-bottom:10px;break-inside:avoid">
-      <div style="font-size:.6rem;color:#475569;font-weight:700;margin-bottom:6px"># ${idx}</div>
-      ${good?`<div style="border-left:3px solid #10b981;padding-left:10px;${improve?'margin-bottom:8px':''}">
-        <div style="font-size:.6rem;color:#10b981;font-weight:700;margin-bottom:3px">❝ Понравилось</div>
-        <div style="font-size:.75rem;color:#d1fae5;line-height:1.6">${good.replace(/\n/g,'<br>')}</div>
+    <div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:14px;margin-bottom:10px;break-inside:avoid">
+      <div style="font-size:.6rem;color:#6366f1;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Отзыв #${idx}</div>
+      ${good?`<div style="margin-bottom:${improve?'10px':'0'}">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <svg width="14" height="12" viewBox="0 0 14 12" fill="none"><path d="M0 12V7.2C0 3.2 2.333 1.067 7 0l.933 1.6C5.6 2.133 4.267 3.2 4 5.2H6V12H0ZM8 12V7.2C8 3.2 10.333 1.067 15 0l.933 1.6C13.6 2.133 12.267 3.2 12 5.2H14V12H8Z" fill="#10b981"/></svg>
+          <span style="font-size:.62rem;color:#10b981;font-weight:700">Понравилось</span>
+        </div>
+        <div style="font-size:.75rem;color:#d1fae5;line-height:1.7;font-style:italic;padding-left:4px">«${good.replace(/\n/g,'<br>')}»</div>
       </div>`:''}
-      ${good&&improve?`<div style="height:1px;background:rgba(255,255,255,.06);margin:6px 0"></div>`:''}
-      ${improve?`<div style="border-left:3px solid #6366f1;padding-left:10px">
-        <div style="font-size:.6rem;color:#818cf8;font-weight:700;margin-bottom:3px">❝ Улучшить</div>
-        <div style="font-size:.75rem;color:#c7d2fe;line-height:1.6">${improve.replace(/\n/g,'<br>')}</div>
+      ${good&&improve?`<div style="height:1px;background:rgba(255,255,255,.06);margin:8px 0"></div>`:''}
+      ${improve?`<div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <svg width="14" height="12" viewBox="0 0 14 12" fill="none"><path d="M0 12V7.2C0 3.2 2.333 1.067 7 0l.933 1.6C5.6 2.133 4.267 3.2 4 5.2H6V12H0ZM8 12V7.2C8 3.2 10.333 1.067 15 0l.933 1.6C13.6 2.133 12.267 3.2 12 5.2H14V12H8Z" fill="#818cf8"/></svg>
+          <span style="font-size:.62rem;color:#818cf8;font-weight:700">Улучшить</span>
+        </div>
+        <div style="font-size:.75rem;color:#c7d2fe;line-height:1.7;font-style:italic;padding-left:4px">«${improve.replace(/\n/g,'<br>')}»</div>
       </div>`:''}
     </div>`;
 
@@ -378,7 +383,7 @@ function feedbackCard(rows){
   return `<div>
     <div style="display:flex;gap:16px;margin-bottom:12px;font-size:.65rem;font-weight:700">
       <span style="color:#10b981">❝ Понравилось</span>
-      <span style="color:#6366f1">❝ Улучшить</span>
+      <span style="color:#818cf8">❝ Улучшить</span>
     </div>
     ${section(4,short)}
     ${section(2,mid)}
