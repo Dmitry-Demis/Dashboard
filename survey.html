@@ -124,9 +124,9 @@ function multi(v){return v?v.split(';').map(s=>s.trim()).filter(Boolean):[]}
 // ── PALETTE & HELPERS ─────────────────────────────────────────────────────────
 const PAL=['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444','#14b8a6','#f97316','#a855f7','#06b6d4','#84cc16'];
 const pc=i=>PAL[i%PAL.length];
-const HINTS=['Ужасно','Очень плохо','Плохо','Ниже среднего','Средне','Нормально','Хорошо','Очень хорошо','Отлично','Замечательно','Гениально'];
-function rCol(v){return v<=2?'#ef4444':v<=4?'#f97316':v<=6?'#f59e0b':v<=8?'#84cc16':'#10b981'}
-function avgCol(v){if(v===null)return '#334155';return v<=2?'#ef4444':v<=4?'#f97316':v<=6?'#f59e0b':v<=8?'#84cc16':'#10b981'}
+const HINTS=['Ужасно','Очень плохо','Плохо','Ниже среднего','Посредственно','Средне','Неплохо','Хорошо','Очень хорошо','Отлично','Превосходно'];
+function rCol(v){return v<=2?'#ef4444':v<=4?'#f97316':v<=5?'#f59e0b':v<=7?'#84cc16':'#10b981'}
+function avgCol(v){if(v===null)return '#334155';return v<=2?'#ef4444':v<=4?'#f97316':v<=5?'#f59e0b':v<=7?'#84cc16':'#10b981'}
 // avg: excludeZero=true для сравнения форматов (0=не знаю/не применимо)
 function avg(arr, excludeZero=false){
   const n=arr.filter(x=>x!==''&&x!==null&&x!==undefined).map(Number).filter(x=>!isNaN(x)&&(excludeZero?x>0:x>=0));
@@ -347,21 +347,26 @@ function compareSummaryCard(rows){
 
 // ── CARD: FEEDBACK (R3/R4) ────────────────────────────────────────────────────
 function feedbackCard(rows){
-  const items=rows.map((r,i)=>{
+  const items=rows.map(r=>{
     const good=(r['R3_Понравилось']||'').trim();
     const improve=(r['R4_Улучшить']||'').trim();
-    if(!good&&!improve)return '';
-    return `<div class="feedback-item">
-      ${good?`<div class="feedback-good">${good.replace(/\n/g,'<br>')}</div>`:''}
-      ${improve?`<div class="feedback-improve">${improve.replace(/\n/g,'<br>')}</div>`:''}
-    </div>`;
-  }).filter(Boolean).join('');
-  return `<div class="feedback-card">
+    if(!good&&!improve)return null;
+    return {good,improve,len:(good+improve).length};
+  }).filter(Boolean);
+
+  const cards=items.map(({good,improve})=>`
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;break-inside:avoid;margin-bottom:10px">
+      ${good?`<div style="border-left:3px solid #10b981;padding-left:10px;margin-bottom:${improve?'8px':'0'};font-size:.75rem;color:#d1fae5;line-height:1.6">${good.replace(/\n/g,'<br>')}</div>`:''}
+      ${good&&improve?`<div style="height:1px;background:rgba(255,255,255,.06);margin:6px 0"></div>`:''}
+      ${improve?`<div style="border-left:3px solid #6366f1;padding-left:10px;font-size:.75rem;color:#c7d2fe;line-height:1.6">${improve.replace(/\n/g,'<br>')}</div>`:''}
+    </div>`).join('');
+
+  return `<div>
     <div style="display:flex;gap:16px;margin-bottom:12px;font-size:.65rem;font-weight:700">
       <span style="color:#10b981">● Понравилось</span>
       <span style="color:#6366f1">● Улучшить</span>
     </div>
-    ${items}
+    <div style="columns:320px;column-gap:10px">${cards}</div>
   </div>`;
 }
 
