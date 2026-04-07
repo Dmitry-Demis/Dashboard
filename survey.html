@@ -560,9 +560,8 @@ function render(rows, addRows=[]){
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         ${commentRows.map(({wish,tg,idx})=>`
           <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:14px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="margin-bottom:10px">
               <span style="font-size:.6rem;color:#f59e0b;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Студент #${idx}</span>
-              ${tg?`<span style="font-size:.6rem;color:#475569;font-weight:600">${tg}</span>`:''}
             </div>
             <div style="font-size:.6rem;color:#fbbf24;font-weight:700;margin-bottom:4px">💡 Пожелание</div>
             <div style="font-size:.73rem;color:#fef3c7;line-height:1.6;font-style:italic">«${wish}»</div>
