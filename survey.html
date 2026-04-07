@@ -531,9 +531,11 @@ function render(rows, addRows=[]){
     {k:'Сможете ли вы объяснить ключевые концепции C++ другому человеку после прохождения параграфа? (Насколько понятно написано)', title:'Сможете ли вы объяснить ключевые концепции C++ другому человеку после прохождения параграфа', low:'Непонятно', high:'Очень понятно'},
     {k:'Стали ли вы чаще применять лучшие практики C++ (brace initialization, `const`-correctness, STL вместо ручных реализаций) в своём коде после использования сайта? (0–10)', title:'Стали ли вы чаще применять лучшие практики C++ в своём коде после использования сайта', low:'Нет', high:'Да, всегда'},
   ];
-  const addRows2=addRows.length?addRows:[];
+  const addRows2=(addRows.length?addRows:[]);
   if(addRows2.length){
-    const ratingCards=addKeys.map(({k,title,low,high})=>ratingCard(title, addRows2.map(r=>r[k]), low, high));
+    const INTERESTED = r=>(r['Интерес к языку C++']||'').trim()!=='Хочу развиваться в другом направлении';
+    const ratingRows=addRows2.filter(INTERESTED);
+    const ratingCards=addKeys.map(({k,title,low,high})=>ratingCard(title, ratingRows.map(r=>r[k]), low, high));
     const timeKey='Как изменилось время, которое вы тратите на выполнение лабораторных работ по C++ (либо для саморазвития)';
     const freqKey='Как часто вы возвращаетесь к материалам сайта для повторения?';
     const perDayKey='Сколько раз в день вы заходили на сайт в среднем?';
@@ -542,51 +544,34 @@ function render(rows, addRows=[]){
     const timeCard=donutCard('Как изменилось время на выполнение лабораторных работ', countV(addRows2.map(r=>r[timeKey])));
     const freqCard=donutCard('Как часто вы возвращаетесь к материалам сайта для повторения', countV(addRows2.map(r=>r[freqKey])));
     const perDayCard=donutCard('Сколько раз в день вы заходили на сайт в среднем', countV(addRows2.map(r=>r[perDayKey])));
-    const interestCard=donutCard('Интерес к языку C++', countV(addRows2.map(r=>r[interestKey]).filter(Boolean)));
     const similarSiteKey='Хотели бы вы, чтобы был похожий сайт для интересного вам языка программирования?';
     const similarSiteCard=donutCard('Хотели бы вы, чтобы был похожий сайт для интересного вам языка программирования', countV(addRows2.map(r=>(r[similarSiteKey]||'').trim()).filter(Boolean)));
-    const wishItems=addRows2.map(r=>(r[wishKey]||'').trim()).filter(x=>x&&x!=='.');
-    const wishHtml=wishItems.length?`<div class="glass" style="padding:16px;grid-column:1/-1">
-      <div class="q-title">Что нужно добавить сайту, чтобы вы чаще на него заходили и учились</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${wishItems.map((w,i)=>`<div style="background:rgba(245,158,11,.07);border-left:3px solid #f59e0b;border-radius:0 10px 10px 0;padding:8px 12px;font-size:.75rem;color:#fef3c7;line-height:1.6"><span style="color:#fbbf24;font-weight:700;margin-right:6px">#${i+1}</span>${w}</div>`).join('')}
-      </div>
-    </div>`:'';
 
     const commentRows=addRows2.map((r,i)=>{
       const wish=(r[wishKey]||'').trim();
-      const interest=(r[interestKey]||'').trim();
       const tg=(r['Тг']||'').trim();
-      if(!wish&&!interest)return null;
-      return {wish,interest,tg,idx:i+1};
+      if(!wish||wish==='.')return null;
+      return {wish,tg,idx:i+1};
     }).filter(Boolean);
     const commentsHtml=commentRows.length?`<div style="margin-top:10px">
       <div style="font-size:.72rem;font-weight:700;color:#fbbf24;margin-bottom:10px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:1rem">💬</span> Комментарии студентов
+        <span style="font-size:1rem">💬</span> Что сделать, чтобы вы чаще заходили?
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-        ${commentRows.map(({wish,interest,tg,idx})=>`
+        ${commentRows.map(({wish,tg,idx})=>`
           <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:14px">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <span style="font-size:.6rem;color:#f59e0b;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Студент #${idx}</span>
               ${tg?`<span style="font-size:.6rem;color:#475569;font-weight:600">${tg}</span>`:''}
             </div>
-            ${wish?`<div style="margin-bottom:${interest?'8px':'0'}">
-              <div style="font-size:.6rem;color:#fbbf24;font-weight:700;margin-bottom:4px">💡 Пожелание</div>
-              <div style="font-size:.73rem;color:#fef3c7;line-height:1.6;font-style:italic">«${wish}»</div>
-            </div>`:''}
-            ${wish&&interest?`<div style="height:1px;background:rgba(245,158,11,.15);margin:8px 0"></div>`:''}
-            ${interest?`<div>
-              <div style="font-size:.6rem;color:#fbbf24;font-weight:700;margin-bottom:4px">🎯 Интерес к C++</div>
-              <div style="font-size:.73rem;color:#fef3c7;line-height:1.6">${interest}</div>
-            </div>`:''}
+            <div style="font-size:.6rem;color:#fbbf24;font-weight:700;margin-bottom:4px">💡 Пожелание</div>
+            <div style="font-size:.73rem;color:#fef3c7;line-height:1.6;font-style:italic">«${wish}»</div>
           </div>`).join('')}
       </div>
     </div>`:'';
 
     html+=secAdd('★','Дополнение к опросу — Эффективность сайта',
-      grid(3,[...ratingCards,timeCard,freqCard,perDayCard,interestCard,similarSiteCard])+
-      (wishHtml?`<div style="margin-top:10px">${wishHtml}</div>`:'')+
+      grid(3,[...ratingCards,timeCard,freqCard,perDayCard,similarSiteCard])+
       commentsHtml
     );
   }
