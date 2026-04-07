@@ -17,6 +17,10 @@ body{font-family:'Inter',sans-serif;background:#060d1a;color:#e2e8f0;min-height:
 .sec-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:999px;padding:4px 14px 4px 6px;margin-bottom:14px}
 .sec-num{width:24px;height:24px;background:#6366f1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:#fff}
 .sec-label{font-size:.75rem;font-weight:700;color:#818cf8;letter-spacing:.04em}
+.sec-pill-add{display:inline-flex;align-items:center;gap:8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:999px;padding:4px 14px 4px 6px;margin-bottom:14px}
+.sec-num-add{width:24px;height:24px;background:linear-gradient(135deg,#f59e0b,#fbbf24);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:900;color:#000}
+.sec-label-add{font-size:.75rem;font-weight:700;color:#fbbf24;letter-spacing:.04em}
+.add-block{background:rgba(245,158,11,.04);border:2px solid rgba(245,158,11,.35);border-radius:20px;padding:20px;margin-bottom:24px;box-shadow:0 0 32px rgba(245,158,11,.08),inset 0 0 60px rgba(245,158,11,.03)}
 .q-title{font-size:.72rem;font-weight:600;color:#94a3b8;line-height:1.4;margin-bottom:10px}
 .avg-big{font-size:1.6rem;font-weight:900;line-height:1}
 .avg-sub{font-size:.6rem;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
@@ -64,10 +68,10 @@ body{font-family:'Inter',sans-serif;background:#060d1a;color:#e2e8f0;min-height:
     <p style="color:#475569;margin-bottom:16px;font-size:.9rem">Загрузите CSV с результатами опроса</p>
     <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:8px 16px;color:#818cf8;font-size:.8rem;font-weight:700;text-decoration:none;margin-bottom:20px;transition:background .2s" onmouseover="this.style.background='rgba(99,102,241,.25)'" onmouseout="this.style.background='rgba(99,102,241,.15)'">📊 Дашборд опроса →</a>
     <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:8px 16px;color:#818cf8;font-size:.8rem;font-weight:700;text-decoration:none;margin-bottom:20px;transition:background .2s" onmouseover="this.style.background='rgba(99,102,241,.25)'" onmouseout="this.style.background='rgba(99,102,241,.15)'">🎮 Вуз. Опрос ←</a>
-    <div class="upload-zone" id="drop-zone" style="padding:44px 24px" onclick="document.getElementById('fi').click()">
+    <div class="upload-zone" id="drop-zone" style="padding:44px 24px" onclick="pickFolder()">
       <div style="font-size:2.8rem;margin-bottom:12px">📂</div>
-      <p style="color:#94a3b8;font-weight:700;margin-bottom:4px">Перетащите файл сюда</p>
-      <p style="color:#334155;font-size:.8rem">или нажмите для выбора .csv</p>
+      <p style="color:#94a3b8;font-weight:700;margin-bottom:4px">Выберите папку с файлами</p>
+      <p style="color:#334155;font-size:.8rem">Дополнение подгрузится автоматически</p>
       <input type="file" id="fi" accept=".csv" style="display:none">
     </div>
     <p id="err" style="color:#ef4444;font-size:.8rem;margin-top:12px;display:none"></p>
@@ -398,6 +402,12 @@ function sec(num,title,inner){
     ${inner}
   </div>`;
 }
+function secAdd(num,title,inner){
+  return `<div class="add-block">
+    <div class="sec-pill-add"><div class="sec-num-add">${num}</div><span class="sec-label-add">${title}</span></div>
+    ${inner}
+  </div>`;
+}
 function grid(cols,cards,gap=10){
   const v=cards.filter(Boolean);
   if(!v.length)return '';
@@ -405,7 +415,7 @@ function grid(cols,cards,gap=10){
 }
 
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
-function render(rows){
+function render(rows, addRows=[]){
   CQ=[];cid=0;
   const n=rows.length;
   document.getElementById('sub').textContent=`${n} ответов · Cpp Quest`;
@@ -512,6 +522,75 @@ function render(rows){
   // 8 — Отзывы
   html+=sec(8,'Отзывы: что понравилось и что улучшить', feedbackCard(rows));
 
+  // ── ДОПОЛНЕНИЕ: данные из второго опроса ─────────────────────────────────
+  const addKeys=[
+    {k:'Насколько много новой информации вы узнали благодаря этому сайту? Оцените от 0 до 10, учитывая только те главы, которые вы изучили — до и после их прочтения.', title:'Насколько много новой информации вы узнали благодаря этому сайту', low:'Ничего нового', high:'Очень много'},
+    {k:'Насколько сильно это помогает или помогло бы вам для решения лабораторных работ? (0–10)', title:'Насколько сильно это помогает или помогло бы вам для решения лабораторных работ', low:'Не помогает', high:'Очень помогает'},
+    {k:'Насколько сильно у вас появился интерес к языку после использования сайта? (0–10)', title:'Насколько сильно у вас появился интерес к языку после использования сайта', low:'Не появился', high:'Очень сильный'},
+    {k:'Насколько вы уверены в своих знаниях по темам, пройденным на сайте? (0–10)', title:'Насколько вы уверены в своих знаниях по темам, пройденным на сайте', low:'Совсем не уверен', high:'Полностью уверен'},
+    {k:'Сможете ли вы объяснить ключевые концепции C++ другому человеку после прохождения параграфа? (Насколько понятно написано)', title:'Сможете ли вы объяснить ключевые концепции C++ другому человеку после прохождения параграфа', low:'Непонятно', high:'Очень понятно'},
+    {k:'Стали ли вы чаще применять лучшие практики C++ (brace initialization, `const`-correctness, STL вместо ручных реализаций) в своём коде после использования сайта? (0–10)', title:'Стали ли вы чаще применять лучшие практики C++ в своём коде после использования сайта', low:'Нет', high:'Да, всегда'},
+  ];
+  const addRows2=addRows.length?addRows:[];
+  if(addRows2.length){
+    const ratingCards=addKeys.map(({k,title,low,high})=>ratingCard(title, addRows2.map(r=>r[k]), low, high));
+    const timeKey='Как изменилось время, которое вы тратите на выполнение лабораторных работ по C++ (либо для саморазвития)';
+    const freqKey='Как часто вы возвращаетесь к материалам сайта для повторения?';
+    const perDayKey='Сколько раз в день вы заходили на сайт в среднем?';
+    const interestKey='Интерес к языку C++';
+    const wishKey='Что нужно добавить сайту, чтобы вы чаще на него заходили и учились?';
+    const timeCard=donutCard('Как изменилось время на выполнение лабораторных работ', countV(addRows2.map(r=>r[timeKey])));
+    const freqCard=donutCard('Как часто вы возвращаетесь к материалам сайта для повторения', countV(addRows2.map(r=>r[freqKey])));
+    const perDayCard=donutCard('Сколько раз в день вы заходили на сайт в среднем', countV(addRows2.map(r=>r[perDayKey])));
+    const interestCard=donutCard('Интерес к языку C++', countV(addRows2.map(r=>r[interestKey]).filter(Boolean)));
+    const similarSiteKey='Хотели бы вы, чтобы был похожий сайт для интересного вам языка программирования?';
+    const similarSiteCard=donutCard('Хотели бы вы, чтобы был похожий сайт для интересного вам языка программирования', countV(addRows2.map(r=>(r[similarSiteKey]||'').trim()).filter(Boolean)));
+    const wishItems=addRows2.map(r=>(r[wishKey]||'').trim()).filter(x=>x&&x!=='.');
+    const wishHtml=wishItems.length?`<div class="glass" style="padding:16px;grid-column:1/-1">
+      <div class="q-title">Что нужно добавить сайту, чтобы вы чаще на него заходили и учились</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${wishItems.map((w,i)=>`<div style="background:rgba(245,158,11,.07);border-left:3px solid #f59e0b;border-radius:0 10px 10px 0;padding:8px 12px;font-size:.75rem;color:#fef3c7;line-height:1.6"><span style="color:#fbbf24;font-weight:700;margin-right:6px">#${i+1}</span>${w}</div>`).join('')}
+      </div>
+    </div>`:'';
+
+    const commentRows=addRows2.map((r,i)=>{
+      const wish=(r[wishKey]||'').trim();
+      const interest=(r[interestKey]||'').trim();
+      const tg=(r['Тг']||'').trim();
+      if(!wish&&!interest)return null;
+      return {wish,interest,tg,idx:i+1};
+    }).filter(Boolean);
+    const commentsHtml=commentRows.length?`<div style="margin-top:10px">
+      <div style="font-size:.72rem;font-weight:700;color:#fbbf24;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:1rem">💬</span> Комментарии студентов
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+        ${commentRows.map(({wish,interest,tg,idx})=>`
+          <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span style="font-size:.6rem;color:#f59e0b;font-weight:800;letter-spacing:.08em;text-transform:uppercase">Студент #${idx}</span>
+              ${tg?`<span style="font-size:.6rem;color:#475569;font-weight:600">${tg}</span>`:''}
+            </div>
+            ${wish?`<div style="margin-bottom:${interest?'8px':'0'}">
+              <div style="font-size:.6rem;color:#fbbf24;font-weight:700;margin-bottom:4px">💡 Пожелание</div>
+              <div style="font-size:.73rem;color:#fef3c7;line-height:1.6;font-style:italic">«${wish}»</div>
+            </div>`:''}
+            ${wish&&interest?`<div style="height:1px;background:rgba(245,158,11,.15);margin:8px 0"></div>`:''}
+            ${interest?`<div>
+              <div style="font-size:.6rem;color:#fbbf24;font-weight:700;margin-bottom:4px">🎯 Интерес к C++</div>
+              <div style="font-size:.73rem;color:#fef3c7;line-height:1.6">${interest}</div>
+            </div>`:''}
+          </div>`).join('')}
+      </div>
+    </div>`:'';
+
+    html+=secAdd('★','Дополнение к опросу — Эффективность сайта',
+      grid(3,[...ratingCards,timeCard,freqCard,perDayCard,interestCard,similarSiteCard])+
+      (wishHtml?`<div style="margin-top:10px">${wishHtml}</div>`:'')+
+      commentsHtml
+    );
+  }
+
   const el=document.getElementById('content');
   el.innerHTML=html;
   document.getElementById('upload-screen').style.display='none';
@@ -554,18 +633,61 @@ function initCharts(){
 }
 
 // ── FILE ──────────────────────────────────────────────────────────────────────
-function handleFile(f){
-  if(!f)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const rows=parseCSV(e.target.result);
-      if(!rows.length){showErr('Файл пустой');return;}
-      render(rows);
-    }catch(ex){showErr('Ошибка: '+ex.message);}
-  };
-  r.readAsText(f,'UTF-8');
+const ADD_NAME = 'Дополнение к опросу.csv';
+
+function readFileAsText(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>res(e.target.result);
+    r.onerror=rej;
+    r.readAsText(file,'UTF-8');
+  });
 }
+
+async function pickFolder(){
+  // Современный API — выбор папки
+  if(window.showDirectoryPicker){
+    try{
+      const dir=await window.showDirectoryPicker();
+      await loadFromDir(dir);
+    }catch(e){
+      if(e.name!=='AbortError')showErr('Ошибка: '+e.message);
+    }
+  } else {
+    // Fallback — обычный выбор файла
+    document.getElementById('fi').click();
+  }
+}
+
+async function loadFromDir(dir){
+  // Ищем все .csv файлы в папке
+  let mainFile=null, addFile=null;
+  for await(const [name,handle] of dir.entries()){
+    if(handle.kind!=='file'||!name.endsWith('.csv'))continue;
+    if(name===ADD_NAME){ addFile=await handle.getFile(); }
+    else { mainFile=await handle.getFile(); }
+  }
+  if(!mainFile){showErr('Не найден основной CSV-файл в папке');return;}
+  try{
+    const mainText=await readFileAsText(mainFile);
+    const addText=addFile?await readFileAsText(addFile):null;
+    const rows=parseCSV(mainText);
+    if(!rows.length){showErr('Файл пустой');return;}
+    const addRows=addText?parseCSV(addText).slice(3):[];
+    render(rows, addRows);
+  }catch(ex){showErr('Ошибка: '+ex.message);}
+}
+
+async function handleFile(f){
+  if(!f)return;
+  try{
+    const text=await readFileAsText(f);
+    const rows=parseCSV(text);
+    if(!rows.length){showErr('Файл пустой');return;}
+    render(rows,[]);
+  }catch(ex){showErr('Ошибка: '+ex.message);}
+}
+
 function showErr(m){const e=document.getElementById('err');e.textContent=m;e.style.display='block';}
 function resetDash(){
   document.getElementById('dash').style.display='none';
@@ -578,7 +700,18 @@ document.getElementById('fi').addEventListener('change',e=>handleFile(e.target.f
 const dz=document.getElementById('drop-zone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleFile(e.dataTransfer.files[0]);});
+dz.addEventListener('drop',async e=>{
+  e.preventDefault();dz.classList.remove('drag');
+  // Если перетащили папку
+  const items=[...e.dataTransfer.items];
+  const dirItem=items.find(i=>i.kind==='file'&&typeof i.getAsFileSystemHandle==='function');
+  if(dirItem){
+    const handle=await dirItem.getAsFileSystemHandle();
+    if(handle.kind==='directory'){await loadFromDir(handle);return;}
+  }
+  // Иначе — файл
+  handleFile(e.dataTransfer.files[0]);
+});
 </script>
 </body>
 </html>
